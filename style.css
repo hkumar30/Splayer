@@ -1,86 +1,182 @@
-/* style.css */
-
 body {
-  font-family: Arial, sans-serif;
-  text-align: center;
-  margin: 0;
-  padding: 20px;
-  background-color: #f8f9fa;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin: 0;
+    padding: 20px;
+    background-color: #f8f9fa;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 h1 {
-  margin-bottom: 20px;
+    margin-bottom: 20px;
+}
+
+#usernameSection {
+    margin-bottom: 20px;
 }
 
 #controls {
-  margin-bottom: 20px;
+    margin-bottom: 20px;
 }
 
 #nodeValue {
-  width: 120px;
-  text-align: center;
-  padding: 8px;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
+    width: 120px;
+    text-align: center;
+    padding: 8px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
 }
 
 button {
-  margin-left: 5px;
-  padding: 8px 12px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  background-color: #007BFF;
-  color: white;
-  transition: background-color 0.3s;
+    margin-left: 5px;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    background-color: #007BFF;
+    color: white;
+    transition: background-color 0.3s;
 }
 
 button:hover {
-  background-color: #0056b3;
+    background-color: #0056b3;
 }
 
 #resetBtn {
-  background-color: #6c757d;
+    background-color: #6c757d;
 }
 
 #resetBtn:hover {
-  background-color: #5a6268;
+    background-color: #5a6268;
 }
 
 #nextLevelBtn {
-  background-color: #28a745;
+    background-color: #28a745;
 }
 
 #nextLevelBtn:hover {
-  background-color: #218838;
+    background-color: #218838;
 }
 
 #feedback {
-  margin-bottom: 20px;
-  font-size: 1.2em;
-  color: #dc3545;
+    margin-bottom: 20px;
+    font-size: 1.2em;
+    color: #dc3545;
+}
+
+#score {
+    margin-bottom: 20px;
+    font-size: 1.2em;
+    color: #000;
 }
 
 #treesContainer {
-  display: flex;
-  justify-content: space-around;
-  flex-wrap: wrap;
+    display: flex;
+    justify-content: center;
+    /* Center the trees horizontally */
+    gap: 40px;
+    /* Space between the trees */
+    flex-wrap: nowrap;
+    /* Prevent wrapping to maintain side-by-side layout */
+    width: 100%;
+    max-width: 1200px;
+    /* Limit the maximum width */
+    overflow: hidden;
+    /* Prevent overflow */
 }
 
 .treeSection {
-  width: 45%;
-  min-width: 300px;
-  margin-bottom: 20px;
+    flex: 1 1 500px;
+    /* Grow and shrink as needed, with a base width of 500px */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* Center the title and Cytoscape canvas */
+    max-width: 600px;
+    /* Set a maximum width */
+    box-sizing: border-box;
 }
 
 .treeSection h2 {
-  margin-bottom: 10px;
+    margin-bottom: 10px;
 }
 
-#cy, #referenceCy {
-  width: 100%;
-  height: 500px;
-  border: 2px solid #dee2e6;
-  border-radius: 8px;
-  background-color: #ffffff;
+#cy,
+#referenceCy {
+    width: 100%;
+    height: 500px;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    background-color: #ffffff;
+    box-sizing: border-box;
+    /* Include border in width and height */
+    overflow: auto;
+    /* Allow scrolling if content exceeds */
+}
+
+/* Highlight class for nodes */
+.highlight {
+    background-color: #FF5733 !important;
+    transition: background-color 0.5s;
+}
+
+/* Leaderboard Section */
+#leaderboardSection {
+    margin-top: 40px;
+    width: 100%;
+    max-width: 800px;
+}
+
+#leaderboardSection h2 {
+    margin-bottom: 10px;
+}
+
+#leaderboard {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#leaderboard th,
+#leaderboard td {
+    border: 1px solid #dee2e6;
+    padding: 10px;
+    text-align: center;
+}
+
+#leaderboard th {
+    background-color: #343a40;
+    color: #fff;
+}
+
+#leaderboard tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+#nav {
+    margin-top: 20px;
+}
+
+#nav a {
+    margin: 0 10px;
+    text-decoration: none;
+    color: #007BFF;
+    font-weight: bold;
+}
+
+#nav a:hover {
+    color: #0056b3;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    #treesContainer {
+        flex-wrap: wrap;
+    }
+
+    .treeSection {
+        flex: 1 1 100%;
+        max-width: 100%;
+    }
 }

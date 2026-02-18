@@ -1,5 +1,7 @@
 # Splayer
 
+[![Netlify Status](https://api.netlify.com/api/v1/badges/4bb6f583-f139-405d-b7c3-06bc134a1425/deploy-status)](https://app.netlify.com/projects/splayer-game/deploys)
+
 An interactive web application for learning and practicing Splay Trees - a self-adjusting binary search tree.
 
 Try it here: https://splayer-game.netlify.app/

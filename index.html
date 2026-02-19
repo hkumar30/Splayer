@@ -468,6 +468,16 @@
                 document.getElementById('score').innerText = `Score: ${currentScore}`;
             }
 
+            // Stable unique id per browser (so multiple users with same name don't overwrite each other)
+            function getPlayerId() {
+                let id = localStorage.getItem('splayer_playerId');
+                if (!id) {
+                    id = 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2, 12);
+                    localStorage.setItem('splayer_playerId', id);
+                }
+                return id;
+            }
+
             // Function to submit score to Firestore
             function submitScore() {
                 const currentUsername = document.getElementById('username').value.trim();
@@ -477,7 +487,8 @@
                 }
                 console.log(`Submitting score: ${currentScore}`);
 
-                db.collection('leaderboard').doc(currentUsername).set({
+                const playerId = getPlayerId();
+                db.collection('leaderboard').doc(playerId).set({
                     username: currentUsername,
                     score: firebase.firestore.FieldValue.increment(currentScore),
                     lastUpdated: firebase.firestore.FieldValue.serverTimestamp()

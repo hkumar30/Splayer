@@ -350,6 +350,7 @@
                 // Set up real-time listener
                 const unsubscribe = db.collection('leaderboard')
                     .orderBy('score', 'desc')
+                    .orderBy('lastUpdated', 'asc')
                     .limit(10)
                     .onSnapshot((querySnapshot) => {
                         leaderboardBody.innerHTML = '';

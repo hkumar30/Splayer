@@ -144,9 +144,10 @@
                 return;
             }
 
-            // Set up real-time listener (single orderBy avoids needing a composite index)
+            // Set up real-time listener
             db.collection('leaderboard')
                 .orderBy('score', 'desc')
+                .orderBy('lastUpdated', 'asc')
                 .limit(10)
                 .onSnapshot((querySnapshot) => {
                     leaderboardBody.innerHTML = ''; // Clear existing entries
@@ -187,14 +188,18 @@
                     loadingIndicator.style.display = 'none';
                 }, (error) => {
                     console.error('Error fetching leaderboard: ', error);
-                    const leaderboardBody = document
-                        .getElementById('leaderboard')
-                        .getElementsByTagName('tbody')[0];
                     leaderboardBody.innerHTML = ''; // Clear existing entries
                     const row = leaderboardBody.insertRow();
                     const cell = row.insertCell(0);
                     cell.colSpan = 4;
-                    cell.innerText = 'Error loading leaderboard data.';
+                    const code = error && error.code ? String(error.code) : 'unknown';
+                    const message = error && error.message ? String(error.message) : String(error);
+                    cell.innerText =
+                        `Error loading leaderboard data.\n` +
+                        `Firestore error (${code}): ${message}\n\n` +
+                        `Common fixes:\n` +
+                        `- Missing composite index: create leaderboard(score desc, lastUpdated asc)\n` +
+                        `- Permission denied: update Firestore rules to allow reads`;
                     cell.style.color = '#dc3545';
                     loadingIndicator.innerText = 'Error loading leaderboard.';
                 });

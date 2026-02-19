@@ -78,6 +78,15 @@ Splaying moves recently accessed elements closer to the root.
 
 Over a sequence of operations, this results in **O(log n)** amortized time complexity.
 
+## Leaderboard
+
+The leaderboard query orders by score and then by last-updated time:
+
+- `score` (descending)
+- `lastUpdated` (ascending)
+
+Firestore requires a **composite index** for this query. Until the index finishes building, the leaderboard page may show an error.
+
 ## Contributions
 
 Contributions are welcome.

@@ -76,8 +76,6 @@
     <script>
         // Main script
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('DOM fully loaded and parsed.');
-
             if (typeof SplayTree === 'undefined') {
                 console.error('SplayTree class is not defined.');
                 return;
@@ -86,14 +84,13 @@
             let splayTree = new SplayTree();
             let referenceTree = new SplayTree();
             let currentLevel = 0;
-            let currentScore = 0; // Numerical score
+            let currentScore = 0;
             let username = '';
 
             const levels = [
                 [10, 20, 30, 40, 50],
                 [15, 25, 35, 45, 55, 65],
                 [5, 3, 8, 1, 4, 7, 10],
-                // Add more levels as needed
             ];
 
             // Keep username in sync with input (so it's current even without blur)
@@ -101,92 +98,88 @@
             usernameInput.addEventListener('input', () => { username = usernameInput.value.trim(); });
             usernameInput.addEventListener('change', () => { username = usernameInput.value.trim(); });
 
-            // Initialize Cytoscape for Player's Tree
+            const cyEl  = document.getElementById('cy');
+            const refEl = document.getElementById('referenceCy');
+
+            const nodeStyle = {
+                'content': 'data(label)',
+                'text-valign': 'center',
+                'color': '#fff',
+                'width': '50px',
+                'height': '50px',
+                'font-size': '14px',
+                'border-width': 2,
+                'border-color': '#fff'
+            };
+            const edgeStyle = {
+                'width': 3,
+                'line-color': '#ccc',
+                'target-arrow-color': '#ccc',
+                'target-arrow-shape': 'triangle',
+                'curve-style': 'bezier',
+                'arrow-scale': 1.5
+            };
+
             let cy = cytoscape({
-                container: document.getElementById('cy'),
+                container: cyEl,
                 style: [
-                    {
-                        selector: 'node',
-                        style: {
-                            'content': 'data(label)',
-                            'text-valign': 'center',
-                            'color': '#fff',
-                            'background-color': '#007BFF',
-                            'width': '50px',
-                            'height': '50px',
-                            'font-size': '14px',
-                            'border-width': 2,
-                            'border-color': '#fff'
-                        }
-                    },
-                    {
-                        selector: 'edge',
-                        style: {
-                            'width': 3,
-                            'line-color': '#ccc',
-                            'target-arrow-color': '#ccc',
-                            'target-arrow-shape': 'triangle',
-                            'curve-style': 'bezier',
-                            'arrow-scale': 1.5
-                        }
-                    }
+                    { selector: 'node', style: { ...nodeStyle, 'background-color': '#007BFF' } },
+                    { selector: 'edge', style: edgeStyle }
                 ],
-                layout: {
-                    name: 'breadthfirst', // Use 'breadthfirst' layout
-                    directed: true, // Direct the layout from parent to child
-                    padding: 10, // Padding around the graph
-                    spacingFactor: 1.5, // Spacing between nodes
-                    animate: true,
-                    fit: true // Fit the graph within the container
-                },
-                userZoomingEnabled: false, // Disable zooming
-                userPanningEnabled: true, // Enable panning
-                boxSelectionEnabled: true,
+                userZoomingEnabled: false,
+                userPanningEnabled: false,
+                boxSelectionEnabled: false,
                 autounselectify: true
             });
 
-            // Initialize Cytoscape for Reference Tree
             let referenceCy = cytoscape({
-                container: document.getElementById('referenceCy'),
+                container: refEl,
                 style: [
-                    {
-                        selector: 'node',
-                        style: {
-                            'content': 'data(label)',
-                            'text-valign': 'center',
-                            'color': '#fff',
-                            'background-color': '#28a745',
-                            'width': '50px',
-                            'height': '50px',
-                            'font-size': '14px',
-                            'border-width': 2,
-                            'border-color': '#fff'
-                        }
-                    },
-                    {
-                        selector: 'edge',
-                        style: {
-                            'width': 3,
-                            'line-color': '#ccc',
-                            'target-arrow-color': '#ccc',
-                            'target-arrow-shape': 'triangle',
-                            'curve-style': 'bezier',
-                            'arrow-scale': 1.5
-                        }
-                    }
+                    { selector: 'node', style: { ...nodeStyle, 'background-color': '#28a745' } },
+                    { selector: 'edge', style: edgeStyle }
                 ],
-                layout: {
-                    name: 'breadthfirst', // Use 'breadthfirst' layout
-                    directed: true, // Direct the layout from parent to child
-                    padding: 10, // Padding around the graph
-                    spacingFactor: 1.5, // Spacing between nodes
-                    animate: true,
-                    fit: true // Fit the graph within the container
-                },
-                userZoomingEnabled: false, // Disable zooming
-                userPanningEnabled: true, // Enable panning
-                boxSelectionEnabled: true,
+                userZoomingEnabled: false,
+                userPanningEnabled: false,
+                boxSelectionEnabled: false,
                 autounselectify: true
+            });
+
+            // --- Manual tree layout (completely bypasses Cytoscape's layout engine & fit) ---
+            // Inorder index → x (preserves BST left-right ordering)
+            // Depth → y (root at top)
+            function computeTreePositions(root) {
+                if (!root) return {};
+                const pos = {};
+                let idx = 0;
+                (function inorder(node, depth) {
+                    if (!node) return;
+                    inorder(node.left, depth + 1);
+                    pos['n' + node.key] = { x: idx * 80, y: depth * 100 };
+                    idx++;
+                    inorder(node.right, depth + 1);
+                })(root, 0);
+                return pos;
+            }
+
+            function applyTreeLayout(cyInst, treeRoot) {
+                const positions = computeTreePositions(treeRoot);
+                const entries = Object.entries(positions);
+                if (entries.length === 0) return;
+
+                cyInst.startBatch();
+                for (const [id, pos] of entries) {
+                    const node = cyInst.getElementById(id);
+                    if (node.length > 0) node.position(pos);
+                }
+                cyInst.endBatch();
+                cyInst.fit(cyInst.elements(), 50);
+            }
+
+            window.addEventListener('resize', () => {
+                cy.resize();
+                applyTreeLayout(cy, splayTree.root);
+                referenceCy.resize();
+                applyTreeLayout(referenceCy, referenceTree.root);
             });
 
             // Function to highlight a node
@@ -246,39 +239,19 @@
                     });
             }
 
-            // Render/Refresh Player's Cytoscape
             function refreshPlayerCytoscape() {
                 console.log('Refreshing Player\'s Tree');
                 cy.elements().remove();
-                let elements = splayTree.getCytoscapeElements();
-                console.log('Player elements:', elements);
-                cy.add(elements);
-                cy.layout({
-                    name: 'breadthfirst',
-                    directed: true,
-                    padding: 10,
-                    spacingFactor: 1.5,
-                    animate: true,
-                    fit: true
-                }).run();
+                cy.add(splayTree.getCytoscapeElements());
+                applyTreeLayout(cy, splayTree.root);
                 checkMatch();
             }
 
-            // Render/Refresh Reference Cytoscape
             function refreshReferenceCytoscape() {
                 console.log('Refreshing Reference Tree');
                 referenceCy.elements().remove();
-                let elements = referenceTree.getCytoscapeElements();
-                console.log('Reference elements:', elements);
-                referenceCy.add(elements);
-                referenceCy.layout({
-                    name: 'breadthfirst',
-                    directed: true,
-                    padding: 10,
-                    spacingFactor: 1.5,
-                    animate: true,
-                    fit: true
-                }).run();
+                referenceCy.add(referenceTree.getCytoscapeElements());
+                applyTreeLayout(referenceCy, referenceTree.root);
             }
 
             // Load Reference Tree for Current Level

@@ -89,13 +89,10 @@ button:hover {
 
 .treeSection {
     flex: 1 1 500px;
-    /* Grow and shrink as needed, with a base width of 500px */
     display: flex;
     flex-direction: column;
-    align-items: center;
-    /* Center the title and Cytoscape canvas */
+    align-items: stretch;
     max-width: 600px;
-    /* Set a maximum width */
     box-sizing: border-box;
 }
 
@@ -105,15 +102,16 @@ button:hover {
 
 #cy,
 #referenceCy {
+    display: block;
+    position: relative;
     width: 100%;
     height: 500px;
     border: 2px solid #dee2e6;
     border-radius: 8px;
     background-color: #ffffff;
+    overflow: hidden;
     box-sizing: border-box;
-    /* Include border in width and height */
-    overflow: auto;
-    /* Allow scrolling if content exceeds */
+    text-align: left;
 }
 
 /* Highlight class for nodes */

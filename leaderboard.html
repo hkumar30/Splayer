@@ -144,10 +144,9 @@
                 return;
             }
 
-            // Set up real-time listener
+            // Set up real-time listener (single orderBy avoids needing a composite index)
             db.collection('leaderboard')
                 .orderBy('score', 'desc')
-                .orderBy('lastUpdated', 'asc')
                 .limit(10)
                 .onSnapshot((querySnapshot) => {
                     leaderboardBody.innerHTML = ''; // Clear existing entries

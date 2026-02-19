@@ -591,21 +591,17 @@
                 }
             }
 
-            // Function to load the leaderboard in real-time
+            // Function to load the leaderboard in real-time (only on pages that have #leaderboard, e.g. leaderboard.html)
             function loadLeaderboardRealtime() {
+                const leaderboardEl = document.getElementById('leaderboard');
+                if (!leaderboardEl) return;
+                const leaderboardBody = leaderboardEl.getElementsByTagName('tbody')[0];
+                if (!leaderboardBody) return;
                 console.log('Setting up real-time leaderboard listener...');
-                const leaderboardBody = document
-                    .getElementById('leaderboard')
-                    .getElementsByTagName('tbody')[0];
-                if (!leaderboardBody) {
-                    console.error('Leaderboard <tbody> element not found.');
-                    return;
-                }
 
                 // Set up real-time listener
                 const unsubscribe = db.collection('leaderboard')
                     .orderBy('score', 'desc')
-                    .orderBy('lastUpdated', 'asc')
                     .limit(10)
                     .onSnapshot((querySnapshot) => {
                         leaderboardBody.innerHTML = '';
@@ -728,10 +724,6 @@
 
             // Initialize Game
             loadLevel(currentLevel);
-
-            // Load the leaderboard in real-time
-            // Note: Leaderboard is now on a separate page
-            loadLeaderboardRealtime();
         });
     </script>
 </body>

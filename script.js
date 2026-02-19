@@ -111,12 +111,12 @@ class Node {
     insert(key) {
       if (!this.root) {
         this.root = new Node(key);
-        return;
+        return true;
       }
-  
+
       let x = this.root;
       let parent = null;
-  
+
       while (x) {
         parent = x;
         if (key < x.key) {
@@ -124,12 +124,11 @@ class Node {
         } else if (key > x.key) {
           x = x.right;
         } else {
-          // Key already in the tree, splay it
           this.splay(x);
-          return;
+          return false;
         }
       }
-  
+
       let newNode = new Node(key);
       newNode.parent = parent;
       if (key < parent.key) {
@@ -138,48 +137,42 @@ class Node {
         parent.right = newNode;
       }
       this.splay(newNode);
+      return true;
     }
   
     // Delete
     delete(key) {
       let node = this.search(key);
       if (!node || node.key !== key) {
-        // Key not found
-        return;
+        return false;
       }
-      // node is now splayed to root
-      // Split the tree into two subtrees: left and right
       let leftSubtree = node.left;
       let rightSubtree = node.right;
-  
+
       if (leftSubtree) {
         leftSubtree.parent = null;
       }
       if (rightSubtree) {
         rightSubtree.parent = null;
       }
-  
-      // Clear the root reference
+
       this.root = null;
-  
-      // If left subtree exists, find max in leftSubtree, splay it, and attach rightSubtree
+
       if (leftSubtree) {
         this.root = leftSubtree;
-        // Find max in leftSubtree
         let maxNode = leftSubtree;
         while (maxNode.right) {
           maxNode = maxNode.right;
         }
         this.splay(maxNode);
-        // Attach right subtree
         maxNode.right = rightSubtree;
         if (rightSubtree) {
           rightSubtree.parent = maxNode;
         }
       } else {
-        // Only right subtree
         this.root = rightSubtree;
       }
+      return true;
     }
   
     // Build Cytoscape elements for visualization

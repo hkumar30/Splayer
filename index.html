@@ -352,13 +352,10 @@
                 // Add more levels as needed
             ];
 
-            // Handle Username Input
-            document.getElementById('username').addEventListener('change', (e) => {
-                username = e.target.value.trim();
-                if (username === '') {
-                    alert('Please enter a valid name.');
-                }
-            });
+            // Keep username in sync with input (so it's current even without blur)
+            const usernameInput = document.getElementById('username');
+            usernameInput.addEventListener('input', () => { username = usernameInput.value.trim(); });
+            usernameInput.addEventListener('change', () => { username = usernameInput.value.trim(); });
 
             // Initialize Cytoscape for Player's Tree
             let cy = cytoscape({
@@ -473,14 +470,15 @@
 
             // Function to submit score to Firestore
             function submitScore() {
-                if (username === '') {
+                const currentUsername = document.getElementById('username').value.trim();
+                if (currentUsername === '') {
                     alert('Please enter your name to submit your score.');
                     return;
                 }
                 console.log(`Submitting score: ${currentScore}`);
 
-                db.collection('leaderboard').doc(username).set({
-                    username: username,
+                db.collection('leaderboard').doc(currentUsername).set({
+                    username: currentUsername,
                     score: firebase.firestore.FieldValue.increment(currentScore),
                     lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
                 }, { merge: true })

@@ -23,7 +23,12 @@
 
     <!-- Controls Section -->
     <div id="controls">
-        <input type="number" id="nodeValue" placeholder="Node Value" />
+        <input
+            type="number"
+            id="nodeValue"
+            placeholder="Node Value"
+            step="1"
+        />
         <button id="insertBtn">Insert</button>
         <button id="searchBtn">Search</button>
         <button id="deleteBtn">Delete</button>
@@ -203,7 +208,7 @@
 
             // Update Score Function
             function updateScore(points) {
-                currentScore += points;
+                currentScore = Math.max(0, currentScore + points);
                 document.getElementById('score').innerText = `Score: ${currentScore}`;
             }
 
@@ -388,7 +393,9 @@
 
             // Button Handlers
             document.getElementById('insertBtn').addEventListener('click', () => {
-                const value = parseInt(document.getElementById('nodeValue').value);
+                const raw = document.getElementById('nodeValue').value.trim();
+                const isInteger = /^-?\d+$/.test(raw);
+                const value = isInteger ? parseInt(raw, 10) : NaN;
                 if (!isNaN(value)) {
                     console.log(`Inserting ${value} into Player Tree`);
                     const inserted = splayTree.insert(value);
@@ -408,7 +415,9 @@
             });
 
             document.getElementById('searchBtn').addEventListener('click', () => {
-                const value = parseInt(document.getElementById('nodeValue').value);
+                const raw = document.getElementById('nodeValue').value.trim();
+                const isInteger = /^-?\d+$/.test(raw);
+                const value = isInteger ? parseInt(raw, 10) : NaN;
                 if (!isNaN(value)) {
                     console.log(`Searching for ${value} in Player Tree`);
                     const result = splayTree.search(value);
@@ -428,7 +437,9 @@
             });
 
             document.getElementById('deleteBtn').addEventListener('click', () => {
-                const value = parseInt(document.getElementById('nodeValue').value);
+                const raw = document.getElementById('nodeValue').value.trim();
+                const isInteger = /^-?\d+$/.test(raw);
+                const value = isInteger ? parseInt(raw, 10) : NaN;
                 if (!isNaN(value)) {
                     console.log(`Deleting ${value} from Player Tree`);
                     const result = splayTree.delete(value);

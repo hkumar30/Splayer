@@ -1,464 +1,418 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8" />
-    <title>Splay Tree Game</title>
-    <!-- Cytoscape.js -->
-    <script src="https://unpkg.com/cytoscape@3.30.4/dist/cytoscape.min.js"></script>
-    <!-- Firebase SDKs (Compat) -->
-    <script src="https://www.gstatic.com/firebasejs/11.1.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.1.0/firebase-analytics-compat.js"></script>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Splayer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/roughjs@4.6.6/bundled/rough.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.1.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.1.0/firebase-analytics-compat.js"></script>
+  <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-    <h1>Splay Tree Game</h1>
 
-    <!-- Username Section -->
-    <div id="usernameSection">
-        <input type="text" id="username" placeholder="Enter your name" />
+<!-- ═══ START SCREEN ═══ -->
+<div id="startScreen" class="screen active">
+  <div class="notebook-card" style="margin-top:8vh">
+    <h1 class="start-title">Splayer</h1>
+    <canvas id="startTreeCanvas"></canvas>
+    <div class="start-name">
+      <label for="playerName">Your name</label>
+      <input type="text" id="playerName" class="notebook-line-input" placeholder="write here..." autocomplete="off">
     </div>
+    <button id="newGameBtn" class="cartoon-btn big">New Game</button>
+    <br>
+    <a href="leaderboard.html" class="start-link">Leaderboard</a>
+  </div>
+</div>
 
-    <!-- Controls Section -->
-    <div id="controls">
-        <input
-            type="number"
-            id="nodeValue"
-            placeholder="Node Value"
-            step="1"
-        />
-        <button id="insertBtn">Insert</button>
-        <button id="searchBtn">Search</button>
-        <button id="deleteBtn">Delete</button>
-        <button id="resetBtn">Reset Player Tree</button>
-        <button id="nextLevelBtn" disabled>Next Level</button> <!-- Disabled by default -->
+<!-- ═══ GAME SCREEN ═══ -->
+<div id="gameScreen" class="screen">
+  <header class="game-header">
+    <button id="homeBtn" class="header-home">Splayer</button>
+    <div class="level-info">
+      <span>Level <span id="levelNum">1</span> / <span id="totalLevels">3</span></span>
+      <div class="level-dots" id="levelDots"></div>
     </div>
+    <div class="score-badge">Score: <span id="scoreValue">0</span></div>
+  </header>
 
-    <!-- Feedback and Score Sections -->
-    <div id="feedback"></div>
-    <div id="score">Score: 0</div>
-
-    <!-- Trees Container -->
-    <div id="treesContainer">
-        <!-- Reference Tree -->
-        <div class="treeSection">
-            <h2>Reference Tree</h2>
-            <div id="referenceCy"></div>
-        </div>
-
-        <!-- Player's Tree -->
-        <div class="treeSection">
-            <h2>Your Tree</h2>
-            <div id="cy"></div>
-        </div>
+  <div class="game-main">
+    <div id="refThumb" class="ref-thumb">
+      <div class="ref-label">Target</div>
+      <canvas id="refCanvasSmall"></canvas>
     </div>
-
-    <!-- Navigation to Leaderboard -->
-    <div id="nav">
-        <a href="leaderboard.html">View Leaderboard</a>
+    <div class="player-canvas-wrap">
+      <canvas id="playerCanvas"></canvas>
     </div>
+  </div>
 
-    <!-- Firebase Initialization and Scripts -->
-    <script src="config.js"></script>
-    <script>
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        firebase.analytics();
+  <div id="feedback" class="scribble-feedback"></div>
 
-        // Initialize Firestore
-        var db = firebase.firestore();
-        console.log("Firestore initialized:", db);
-    </script>
+  <div class="controls">
+    <input type="number" id="nodeValue" step="1" placeholder="value" class="node-input">
+    <div class="btn-group">
+      <button id="insertBtn" class="cartoon-btn">Insert</button>
+      <button id="searchBtn" class="cartoon-btn">Search</button>
+      <button id="deleteBtn" class="cartoon-btn">Delete</button>
+    </div>
+    <div class="btn-group">
+      <button id="resetBtn" class="cartoon-btn secondary">Reset</button>
+      <button id="nextLevelBtn" class="cartoon-btn accent" disabled>Next Level</button>
+    </div>
+  </div>
 
-    <script src="script.js"></script>
-    <script>
-        // Main script
-        document.addEventListener('DOMContentLoaded', () => {
-            if (typeof SplayTree === 'undefined') {
-                console.error('SplayTree class is not defined.');
-                return;
-            }
+  <!-- Lightbox for enlarged reference tree -->
+  <div id="refLightbox" class="lightbox">
+    <div class="lightbox-overlay" id="lightboxOverlay"></div>
+    <div class="lightbox-panel">
+      <div class="lightbox-head">
+        <span>Target Tree</span>
+        <button id="lightboxClose" class="lightbox-x">&times;</button>
+      </div>
+      <canvas id="refCanvasLarge"></canvas>
+    </div>
+  </div>
+</div>
 
-            let splayTree = new SplayTree();
-            let referenceTree = new SplayTree();
-            let currentLevel = 0;
-            let currentScore = 0;
-            let username = '';
+<!-- ═══ WIN SCREEN ═══ -->
+<div id="winScreen" class="screen">
+  <div class="notebook-card" style="margin-top:12vh">
+    <div class="win-stars"><span>&#9733;</span> <span>&#9733;</span> <span>&#9733;</span></div>
+    <h1 class="win-title">You Win!</h1>
+    <div class="win-score">Total Score: <span id="finalScore">0</span></div>
+    <div class="win-actions">
+      <button id="playAgainBtn" class="cartoon-btn">Play Again</button>
+      <button id="viewLbBtn" class="cartoon-btn accent">Leaderboard</button>
+      <button id="returnHomeBtn" class="cartoon-btn secondary">Home</button>
+    </div>
+  </div>
+</div>
 
-            const levels = [
-                [10, 20, 30, 40, 50],
-                [15, 25, 35, 45, 55, 65],
-                [5, 3, 8, 1, 4, 7, 10],
-            ];
+<!-- ═══ Scripts ═══ -->
+<script src="config.js"></script>
+<script>
+  firebase.initializeApp(firebaseConfig);
+  firebase.analytics();
+  var db = firebase.firestore();
+</script>
+<script src="script.js"></script>
 
-            // Keep username in sync with input (so it's current even without blur)
-            const usernameInput = document.getElementById('username');
-            usernameInput.addEventListener('input', () => { username = usernameInput.value.trim(); });
-            usernameInput.addEventListener('change', () => { username = usernameInput.value.trim(); });
+<script>
+document.addEventListener('DOMContentLoaded', () => {
 
-            const cyEl  = document.getElementById('cy');
-            const refEl = document.getElementById('referenceCy');
+  /* ── Levels (add more objects to extend the game) ─── */
+  const levels = [
+    { keys: [10, 20, 30, 40, 50] },
+    { keys: [15, 25, 35, 45, 55, 65] },
+    { keys: [5, 3, 8, 1, 4, 7, 10] },
+  ];
 
-            const nodeStyle = {
-                'content': 'data(label)',
-                'text-valign': 'center',
-                'color': '#fff',
-                'width': '50px',
-                'height': '50px',
-                'font-size': '14px',
-                'border-width': 2,
-                'border-color': '#fff'
-            };
-            const edgeStyle = {
-                'width': 3,
-                'line-color': '#ccc',
-                'target-arrow-color': '#ccc',
-                'target-arrow-shape': 'triangle',
-                'curve-style': 'bezier',
-                'arrow-scale': 1.5
-            };
+  /* ── State ─── */
+  let playerName   = '';
+  let currentLevel  = 0;
+  let currentScore  = 0;
+  let totalScore    = 0;
+  let splayTree     = new SplayTree();
+  let referenceTree = new SplayTree();
 
-            let cy = cytoscape({
-                container: cyEl,
-                style: [
-                    { selector: 'node', style: { ...nodeStyle, 'background-color': '#007BFF' } },
-                    { selector: 'edge', style: edgeStyle }
-                ],
-                userZoomingEnabled: false,
-                userPanningEnabled: false,
-                boxSelectionEnabled: false,
-                autounselectify: true
-            });
+  /* ── Renderers ─── */
+  const playerRenderer   = new TreeRenderer(document.getElementById('playerCanvas'), {
+    nodeFill: '#aa6f73', textColor: '#fff',
+  });
+  const refSmallRenderer = new TreeRenderer(document.getElementById('refCanvasSmall'), {
+    nodeFill: '#eea990', textColor: '#66545e', showPaper: false, padding: 30, nodeRadius: 16, roughness: 1.2,
+  });
+  const refLargeRenderer = new TreeRenderer(document.getElementById('refCanvasLarge'), {
+    nodeFill: '#eea990', textColor: '#66545e',
+  });
 
-            let referenceCy = cytoscape({
-                container: refEl,
-                style: [
-                    { selector: 'node', style: { ...nodeStyle, 'background-color': '#28a745' } },
-                    { selector: 'edge', style: edgeStyle }
-                ],
-                userZoomingEnabled: false,
-                userPanningEnabled: false,
-                boxSelectionEnabled: false,
-                autounselectify: true
-            });
+  /* ── Screens ─── */
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
 
-            // --- Manual tree layout (completely bypasses Cytoscape's layout engine & fit) ---
-            // Inorder index → x (preserves BST left-right ordering)
-            // Depth → y (root at top)
-            function computeTreePositions(root) {
-                if (!root) return {};
-                const pos = {};
-                let idx = 0;
-                (function inorder(node, depth) {
-                    if (!node) return;
-                    inorder(node.left, depth + 1);
-                    pos['n' + node.key] = { x: idx * 80, y: depth * 100 };
-                    idx++;
-                    inorder(node.right, depth + 1);
-                })(root, 0);
-                return pos;
-            }
+  /* ── Rendering ─── */
+  function renderPlayer()  { playerRenderer.render(splayTree.root); }
+  function renderRef() {
+    refSmallRenderer.render(referenceTree.root);
+    if (document.getElementById('refLightbox').classList.contains('active')) {
+      refLargeRenderer.render(referenceTree.root);
+    }
+  }
 
-            function applyTreeLayout(cyInst, treeRoot) {
-                const positions = computeTreePositions(treeRoot);
-                const entries = Object.entries(positions);
-                if (entries.length === 0) return;
+  /* ── Score ─── */
+  function updateScore(pts) {
+    currentScore = Math.max(0, currentScore + pts);
+    document.getElementById('scoreValue').textContent = currentScore;
+  }
 
-                cyInst.startBatch();
-                for (const [id, pos] of entries) {
-                    const node = cyInst.getElementById(id);
-                    if (node.length > 0) node.position(pos);
-                }
-                cyInst.endBatch();
-                cyInst.fit(cyInst.elements(), 50);
-            }
+  /* ── Feedback ─── */
+  function setFeedback(msg, ok) {
+    const el = document.getElementById('feedback');
+    el.textContent = msg;
+    el.className = 'scribble-feedback' + (ok ? ' success' : '');
+  }
 
-            window.addEventListener('resize', () => {
-                cy.resize();
-                applyTreeLayout(cy, splayTree.root);
-                referenceCy.resize();
-                applyTreeLayout(referenceCy, referenceTree.root);
-            });
+  /* ── Controls ─── */
+  function setControls(on) {
+    ['insertBtn','searchBtn','deleteBtn'].forEach(id => {
+      document.getElementById(id).disabled = !on;
+    });
+  }
 
-            // Function to highlight a node
-            function highlightNode(key, treeType = 'player') {
-                const nodeId = `n${key}`;
-                let node;
-                if (treeType === 'player') {
-                    node = cy.getElementById(nodeId);
-                } else if (treeType === 'reference') {
-                    node = referenceCy.getElementById(nodeId);
-                }
-                if (node && node.length > 0) {
-                    node.addClass('highlight');
-                    setTimeout(() => {
-                        node.removeClass('highlight');
-                    }, 1000); // Highlight for 1 second
-                }
-            }
+  /* ── Level dots ─── */
+  function updateDots() {
+    const c = document.getElementById('levelDots');
+    c.innerHTML = '';
+    for (let i = 0; i < levels.length; i++) {
+      const d = document.createElement('span');
+      d.className = 'dot' + (i <= currentLevel ? ' filled' : '');
+      c.appendChild(d);
+    }
+  }
 
-            // Update Score Function
-            function updateScore(points) {
-                currentScore = Math.max(0, currentScore + points);
-                document.getElementById('score').innerText = `Score: ${currentScore}`;
-            }
+  /* ── Load level ─── */
+  function loadLevel(lvl) {
+    splayTree     = new SplayTree();
+    referenceTree = new SplayTree();
+    levels[lvl].keys.forEach(k => referenceTree.insert(k));
 
-            // Stable unique id per browser (so multiple users with same name don't overwrite each other)
-            function getPlayerId() {
-                let id = localStorage.getItem('splayer_playerId');
-                if (!id) {
-                    id = 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2, 12);
-                    localStorage.setItem('splayer_playerId', id);
-                }
-                return id;
-            }
+    currentScore = 0;
+    document.getElementById('scoreValue').textContent = '0';
+    document.getElementById('levelNum').textContent = lvl + 1;
+    document.getElementById('totalLevels').textContent = levels.length;
+    updateDots();
+    setFeedback('');
+    setControls(true);
+    document.getElementById('nextLevelBtn').disabled = true;
+    document.getElementById('nodeValue').value = '';
 
-            // Function to submit score to Firestore
-            function submitScore() {
-                const currentUsername = document.getElementById('username').value.trim();
-                if (currentUsername === '') {
-                    alert('Please enter your name to submit your score.');
-                    return;
-                }
-                console.log(`Submitting score: ${currentScore}`);
+    renderPlayer();
+    renderRef();
+  }
 
-                const playerId = getPlayerId();
-                db.collection('leaderboard').doc(playerId).set({
-                    username: currentUsername,
-                    score: firebase.firestore.FieldValue.increment(currentScore),
-                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-                }, { merge: true })
-                    .then(() => {
-                        console.log('Score successfully submitted!');
-                        loadLeaderboardRealtime(); // After submission, re-load leaderboard data
-                    })
-                    .catch((error) => {
-                        console.error('Error submitting score: ', error);
-                    });
-            }
+  /* ── Tree comparison ─── */
+  function treesMatch(a, b) {
+    if (!a && !b) return true;
+    if (!a || !b) return false;
+    if (a.key !== b.key) return false;
+    return treesMatch(a.left, b.left) && treesMatch(a.right, b.right);
+  }
 
-            function refreshPlayerCytoscape() {
-                console.log('Refreshing Player\'s Tree');
-                cy.elements().remove();
-                cy.add(splayTree.getCytoscapeElements());
-                applyTreeLayout(cy, splayTree.root);
-                checkMatch();
-            }
+  function checkMatch() {
+    if (treesMatch(splayTree.root, referenceTree.root)) {
+      setFeedback('Trees match! Great job!', true);
+      updateScore(50);
+      submitScore();
+      document.getElementById('nextLevelBtn').disabled = false;
+      setControls(false);
+    } else {
+      setFeedback('~ Keep going! Match the target tree ~');
+      document.getElementById('nextLevelBtn').disabled = true;
+    }
+  }
 
-            function refreshReferenceCytoscape() {
-                console.log('Refreshing Reference Tree');
-                referenceCy.elements().remove();
-                referenceCy.add(referenceTree.getCytoscapeElements());
-                applyTreeLayout(referenceCy, referenceTree.root);
-            }
+  /* ── Firebase helpers ─── */
+  function getPlayerId() {
+    let id = localStorage.getItem('splayer_playerId');
+    if (!id) {
+      id = 'p_' + Date.now() + '_' + Math.random().toString(36).slice(2, 12);
+      localStorage.setItem('splayer_playerId', id);
+    }
+    return id;
+  }
 
-            // Load Reference Tree for Current Level
-            function loadReferenceTree(level) {
-                console.log(`Loading Reference Tree for level ${level + 1}`);
-                referenceTree = new SplayTree();
-                let keys = levels[level];
-                keys.forEach(key => {
-                    console.log(`Inserting ${key} into Reference Tree`);
-                    referenceTree.insert(key);
-                });
-                refreshReferenceCytoscape();
-            }
+  function submitScore() {
+    if (!playerName) return;
+    db.collection('leaderboard').doc(getPlayerId()).set({
+      username: playerName,
+      score: firebase.firestore.FieldValue.increment(currentScore),
+      lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
+    }, { merge: true }).catch(e => console.error('Submit error', e));
+  }
 
-            // Load Level
-            function loadLevel(level) {
-                console.log(`Loading Level ${level + 1}`);
-                // Reset Player's Tree
-                splayTree = new SplayTree();
-                refreshPlayerCytoscape();
-                // Load Reference Tree
-                loadReferenceTree(level);
-                // Reset Feedback
-                document.getElementById('feedback').innerText = '';
-                // Reset Score
-                currentScore = 0;
-                document.getElementById('score').innerText = `Score: ${currentScore}`;
-                // Disable Next Level button until level is completed
-                document.getElementById('nextLevelBtn').disabled = true;
-                // Enable other buttons
-                document.getElementById('insertBtn').disabled = false;
-                document.getElementById('searchBtn').disabled = false;
-                document.getElementById('deleteBtn').disabled = false;
-            }
+  /* ── Value helper ─── */
+  function readValue() {
+    const raw = document.getElementById('nodeValue').value.trim();
+    if (!/^-?\d+$/.test(raw)) return null;
+    return parseInt(raw, 10);
+  }
 
-            // Compare Player's Tree with Reference Tree
-            function treesMatch(playerRoot, referenceRoot) {
-                if (playerRoot === null && referenceRoot === null) return true;
-                if (playerRoot === null || referenceRoot === null) return false;
-                if (playerRoot.key !== referenceRoot.key) return false;
-                return treesMatch(playerRoot.left, referenceRoot.left) && treesMatch(playerRoot.right, referenceRoot.right);
-            }
+  function flashHighlight(renderer, tree, key) {
+    renderer.highlight(key);
+    renderer.render(tree.root);
+    setTimeout(() => { renderer.clearHighlight(); renderer.render(tree.root); }, 600);
+  }
 
-            // Check if Trees Match and Provide Feedback
-            function checkMatch() {
-                console.log('Checking if trees match.');
-                if (treesMatch(splayTree.root, referenceTree.root)) {
-                    console.log('Trees match.');
-                    document.getElementById('feedback').innerText = '🎉 Congratulations! Trees Match!';
-                    document.getElementById('feedback').style.color = '#28a745';
-                    updateScore(50); // +50 points for level completion
-                    submitScore(); // Submit the score to Firestore
-                    document.getElementById('nextLevelBtn').disabled = false; // Enable Next Level button
-                    // Optionally disable other buttons to prevent further actions
-                    document.getElementById('insertBtn').disabled = true;
-                    document.getElementById('searchBtn').disabled = true;
-                    document.getElementById('deleteBtn').disabled = true;
-                } else {
-                    console.log('Trees do not match.');
-                    document.getElementById('feedback').innerText = 'Keep trying to match the reference tree.';
-                    document.getElementById('feedback').style.color = '#dc3545';
-                    document.getElementById('nextLevelBtn').disabled = true; // Disable Next Level button
-                }
-            }
+  /* ── Button handlers ─── */
+  document.getElementById('insertBtn').addEventListener('click', () => {
+    const v = readValue();
+    if (v === null) { updateScore(-5); setFeedback('Enter a valid integer!'); return; }
+    const ok = splayTree.insert(v);
+    renderPlayer();
+    flashHighlight(playerRenderer, splayTree, v);
+    if (ok) { updateScore(10); } else { updateScore(-5); setFeedback('Already in tree!'); }
+    checkMatch();
+    document.getElementById('nodeValue').value = '';
+  });
 
-            // Function to load the leaderboard in real-time (only on pages that have #leaderboard, e.g. leaderboard.html)
-            function loadLeaderboardRealtime() {
-                const leaderboardEl = document.getElementById('leaderboard');
-                if (!leaderboardEl) return;
-                const leaderboardBody = leaderboardEl.getElementsByTagName('tbody')[0];
-                if (!leaderboardBody) return;
-                console.log('Setting up real-time leaderboard listener...');
+  document.getElementById('searchBtn').addEventListener('click', () => {
+    const v = readValue();
+    if (v === null) { updateScore(-5); setFeedback('Enter a valid integer!'); return; }
+    const found = splayTree.search(v);
+    renderPlayer();
+    flashHighlight(playerRenderer, splayTree, v);
+    if (found) { updateScore(5); } else { updateScore(-5); setFeedback('Key not found!'); }
+    checkMatch();
+    document.getElementById('nodeValue').value = '';
+  });
 
-                // Set up real-time listener
-                const unsubscribe = db.collection('leaderboard')
-                    .orderBy('score', 'desc')
-                    .orderBy('lastUpdated', 'asc')
-                    .limit(10)
-                    .onSnapshot((querySnapshot) => {
-                        leaderboardBody.innerHTML = '';
-                        let rank = 1;
+  document.getElementById('deleteBtn').addEventListener('click', () => {
+    const v = readValue();
+    if (v === null) { updateScore(-5); setFeedback('Enter a valid integer!'); return; }
+    const ok = splayTree.delete(v);
+    renderPlayer();
+    if (ok) { updateScore(15); } else { updateScore(-5); setFeedback('Key not found!'); }
+    checkMatch();
+    document.getElementById('nodeValue').value = '';
+  });
 
-                        if (querySnapshot.empty) {
-                            console.log('No leaderboard data found.');
-                            const row = leaderboardBody.insertRow();
-                            const cell = row.insertCell(0);
-                            cell.colSpan = 4;
-                            cell.innerText = 'No data available.';
-                            cell.style.color = '#dc3545';
-                            return;
-                        }
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    splayTree = new SplayTree();
+    currentScore = 0;
+    document.getElementById('scoreValue').textContent = '0';
+    renderPlayer();
+    setFeedback('');
+    setControls(true);
+    document.getElementById('nextLevelBtn').disabled = true;
+  });
 
-                        querySnapshot.forEach((doc) => {
-                            const data = doc.data();
-                            console.log('Leaderboard doc:', doc.id, data);
+  document.getElementById('nextLevelBtn').addEventListener('click', () => {
+    totalScore += currentScore;
+    currentLevel++;
+    if (currentLevel >= levels.length) {
+      document.getElementById('finalScore').textContent = totalScore;
+      showScreen('winScreen');
+      return;
+    }
+    loadLevel(currentLevel);
+  });
 
-                            const date = data.lastUpdated
-                                ? data.lastUpdated.toDate().toLocaleString()
-                                : 'N/A';
-                            const row = leaderboardBody.insertRow();
-                            row.insertCell(0).innerText = rank;
-                            row.insertCell(1).innerText = data.username;
-                            row.insertCell(2).innerText = data.score;
-                            row.insertCell(3).innerText = date;
-                            rank++;
-                        });
-                        console.log('Leaderboard updated with', querySnapshot.size, 'entries.');
-                    }, (error) => {
-                        console.error('Error fetching leaderboard: ', error);
-                    });
-            }
+  /* ── Start screen ─── */
+  const savedName = localStorage.getItem('splayer_playerName');
+  if (savedName) document.getElementById('playerName').value = savedName;
 
-            // Button Handlers
-            document.getElementById('insertBtn').addEventListener('click', () => {
-                const raw = document.getElementById('nodeValue').value.trim();
-                const isInteger = /^-?\d+$/.test(raw);
-                const value = isInteger ? parseInt(raw, 10) : NaN;
-                if (!isNaN(value)) {
-                    console.log(`Inserting ${value} into Player Tree`);
-                    const inserted = splayTree.insert(value);
-                    refreshPlayerCytoscape();
-                    highlightNode(value, 'player'); // Highlight the inserted node in player's tree
-                    if (inserted) {
-                        updateScore(10); // +10 points for insertion
-                    } else {
-                        updateScore(-5); // -5 points for duplicate insertion
-                        alert('Key already exists in the tree.');
-                    }
-                } else {
-                    // Handle incorrect input
-                    updateScore(-5); // -5 points for incorrect input
-                    alert('Please enter a valid number.');
-                }
-            });
+  document.getElementById('newGameBtn').addEventListener('click', () => {
+    const inp = document.getElementById('playerName');
+    playerName = inp.value.trim();
+    if (!playerName) {
+      inp.classList.add('shake');
+      setTimeout(() => inp.classList.remove('shake'), 400);
+      inp.focus();
+      return;
+    }
+    localStorage.setItem('splayer_playerName', playerName);
+    currentLevel = 0;
+    totalScore   = 0;
+    showScreen('gameScreen');
+    loadLevel(0);
+  });
 
-            document.getElementById('searchBtn').addEventListener('click', () => {
-                const raw = document.getElementById('nodeValue').value.trim();
-                const isInteger = /^-?\d+$/.test(raw);
-                const value = isInteger ? parseInt(raw, 10) : NaN;
-                if (!isNaN(value)) {
-                    console.log(`Searching for ${value} in Player Tree`);
-                    const result = splayTree.search(value);
-                    refreshPlayerCytoscape();
-                    highlightNode(value, 'player'); // Highlight the searched node in player's tree
-                    if (result) {
-                        updateScore(5); // +5 points for successful search
-                    } else {
-                        updateScore(-5); // -5 points for unsuccessful search
-                        alert('Key not found in the tree.');
-                    }
-                } else {
-                    // Handle incorrect input
-                    updateScore(-5); // -5 points for incorrect input
-                    alert('Please enter a valid number.');
-                }
-            });
+  /* ── Lightbox ─── */
+  document.getElementById('refThumb').addEventListener('click', () => {
+    document.getElementById('refLightbox').classList.add('active');
+    refLargeRenderer.render(referenceTree.root);
+  });
+  document.getElementById('lightboxClose').addEventListener('click', () => {
+    document.getElementById('refLightbox').classList.remove('active');
+  });
+  document.getElementById('lightboxOverlay').addEventListener('click', () => {
+    document.getElementById('refLightbox').classList.remove('active');
+  });
 
-            document.getElementById('deleteBtn').addEventListener('click', () => {
-                const raw = document.getElementById('nodeValue').value.trim();
-                const isInteger = /^-?\d+$/.test(raw);
-                const value = isInteger ? parseInt(raw, 10) : NaN;
-                if (!isNaN(value)) {
-                    console.log(`Deleting ${value} from Player Tree`);
-                    const result = splayTree.delete(value);
-                    refreshPlayerCytoscape();
-                    if (result) {
-                        updateScore(15); // +15 points for successful deletion
-                    } else {
-                        updateScore(-5); // -5 points for unsuccessful deletion
-                        alert('Key not found in the tree. Cannot delete.');
-                    }
-                } else {
-                    // Handle incorrect input
-                    updateScore(-5); // -5 points for incorrect input
-                    alert('Please enter a valid number.');
-                }
-            });
+  /* ── Win screen buttons ─── */
+  document.getElementById('playAgainBtn').addEventListener('click', () => {
+    currentLevel = 0;
+    totalScore   = 0;
+    showScreen('gameScreen');
+    loadLevel(0);
+  });
+  document.getElementById('viewLbBtn').addEventListener('click', () => {
+    window.location.href = 'leaderboard.html';
+  });
+  document.getElementById('returnHomeBtn').addEventListener('click', () => {
+    showScreen('startScreen');
+    drawStartDoodle();
+  });
 
-            document.getElementById('resetBtn').addEventListener('click', () => {
-                console.log('Resetting Player Tree');
-                splayTree = new SplayTree();
-                refreshPlayerCytoscape();
-                // Optionally, reset score
-                currentScore = 0;
-                document.getElementById('score').innerText = `Score: ${currentScore}`;
-                // Disable Next Level button
-                document.getElementById('nextLevelBtn').disabled = true;
-                // Enable buttons
-                document.getElementById('insertBtn').disabled = false;
-                document.getElementById('searchBtn').disabled = false;
-                document.getElementById('deleteBtn').disabled = false;
-            });
+  /* ── Home button in game header ─── */
+  document.getElementById('homeBtn').addEventListener('click', () => {
+    if (!confirm('Leave the game? Progress on this level will be lost.')) return;
+    showScreen('startScreen');
+    drawStartDoodle();
+  });
 
-            document.getElementById('nextLevelBtn').addEventListener('click', () => {
-                currentLevel++;
-                if (currentLevel >= levels.length) {
-                    alert('You have completed all levels!');
-                    currentLevel = levels.length - 1; // Stay at last level
-                    return;
-                }
-                loadLevel(currentLevel);
-            });
+  /* ── Resize ─── */
+  window.addEventListener('resize', () => {
+    renderPlayer();
+    renderRef();
+  });
 
-            // Initialize Game
-            loadLevel(currentLevel);
-        });
-    </script>
+  /* ── Start-screen doodle tree (spells S-P-L-A-Y-E-R in level-order) ─── */
+  function drawStartDoodle() {
+    const canvas = document.getElementById('startTreeCanvas');
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    if (rect.width < 1) return;
+    canvas.width  = rect.width  * dpr;
+    canvas.height = rect.height * dpr;
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    const rc = rough.canvas(canvas);
+    const w = rect.width, h = rect.height, cx = w / 2;
+
+    const nodes = [
+      { x: cx,       y: 32,  c: '#aa6f73', l: 'S' },
+      { x: cx - 80,  y: 95,  c: '#eea990', l: 'P' },
+      { x: cx + 80,  y: 95,  c: '#eea990', l: 'L' },
+      { x: cx - 115, y: 158, c: '#f6e0b5', l: 'A' },
+      { x: cx - 45,  y: 158, c: '#f6e0b5', l: 'Y' },
+      { x: cx + 45,  y: 158, c: '#f6e0b5', l: 'E' },
+      { x: cx + 115, y: 158, c: '#f6e0b5', l: 'R' },
+    ];
+    const edges = [[0,1],[0,2],[1,3],[1,4],[2,5],[2,6]];
+
+    for (const [i, j] of edges) {
+      rc.line(nodes[i].x, nodes[i].y, nodes[j].x, nodes[j].y, {
+        stroke: '#66545e', strokeWidth: 2, roughness: 2.2,
+      });
+    }
+    for (const n of nodes) {
+      rc.circle(n.x, n.y, 38, {
+        fill: n.c, fillStyle: 'solid', stroke: '#66545e', strokeWidth: 2, roughness: 1.6,
+      });
+      ctx.save();
+      ctx.font = 'bold 15px "Patrick Hand",cursive';
+      ctx.fillStyle = n.c === '#f6e0b5' ? '#66545e' : '#fff';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(n.l, n.x, n.y + 1);
+      ctx.restore();
+    }
+  }
+
+  document.fonts.ready.then(() => {
+    drawStartDoodle();
+    setTimeout(drawStartDoodle, 300);
+  });
+});
+</script>
 </body>
-
 </html>

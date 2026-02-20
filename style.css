@@ -1,180 +1,522 @@
+@import url('https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap');
+
+:root {
+  --dark:    #66545e;
+  --muted:   #a39193;
+  --rose:    #aa6f73;
+  --peach:   #eea990;
+  --cream:   #f6e0b5;
+  --paper:   #faf6ee;
+  --white:   #fff;
+  --shadow:  rgba(102,84,94,.25);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
 body {
-    font-family: Arial, sans-serif;
-    text-align: center;
-    margin: 0;
-    padding: 20px;
-    background-color: #f8f9fa;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  font-family: 'Patrick Hand', cursive;
+  color: var(--dark);
+  background: linear-gradient(155deg, var(--cream) 0%, var(--peach) 100%);
+  min-height: 100vh;
+  overflow-x: hidden;
 }
 
-h1 {
-    margin-bottom: 20px;
+/* ── Screens ───────────────────────────────────────────── */
+
+.screen {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  padding: 24px 16px;
+}
+.screen.active { display: flex; }
+
+/* ── Notebook card (start + win) ───────────────────────── */
+
+.notebook-card {
+  background: var(--paper);
+  background-image: repeating-linear-gradient(
+    transparent, transparent 27px, rgba(102,84,94,.08) 27px, rgba(102,84,94,.08) 28px
+  );
+  border: 3px solid var(--dark);
+  border-radius: 16px;
+  padding: 44px 40px 36px;
+  box-shadow: 5px 5px 0 var(--dark);
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
 }
 
-#usernameSection {
-    margin-bottom: 20px;
+/* ── Start screen ──────────────────────────────────────── */
+
+.start-title {
+  font-size: 3.4rem;
+  letter-spacing: 2px;
+  margin-bottom: 12px;
+  color: var(--rose);
+  text-shadow: 2px 2px 0 var(--dark);
 }
 
-#controls {
-    margin-bottom: 20px;
+#startTreeCanvas {
+  width: 280px;
+  height: 200px;
+  margin: 0 auto 20px;
+  display: block;
 }
 
-#nodeValue {
-    width: 120px;
-    text-align: center;
-    padding: 8px;
-    border: 1px solid #ced4da;
-    border-radius: 4px;
+.start-name {
+  margin-bottom: 24px;
+}
+.start-name label {
+  display: block;
+  font-size: 1.15rem;
+  color: var(--muted);
+  margin-bottom: 4px;
 }
 
-button {
-    margin-left: 5px;
-    padding: 8px 12px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    background-color: #007BFF;
-    color: white;
-    transition: background-color 0.3s;
+.notebook-line-input {
+  background: transparent;
+  border: none;
+  border-bottom: 2px dashed var(--dark);
+  font-family: 'Patrick Hand', cursive;
+  font-size: 1.4rem;
+  color: var(--dark);
+  padding: 4px 8px;
+  width: 220px;
+  text-align: center;
+  outline: none;
+  transition: border-color .2s;
+}
+.notebook-line-input:focus {
+  border-bottom-style: solid;
+  border-bottom-color: var(--rose);
+}
+.notebook-line-input.shake { animation: shake .35s ease; }
+
+.start-link {
+  display: inline-block;
+  margin-top: 18px;
+  font-size: 1.05rem;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color .2s;
+}
+.start-link:hover { color: var(--rose); }
+
+/* ── Cartoon buttons ───────────────────────────────────── */
+
+.cartoon-btn {
+  font-family: 'Patrick Hand', cursive;
+  font-size: 1.15rem;
+  color: var(--white);
+  background: var(--rose);
+  border: 3px solid var(--dark);
+  border-radius: 50px;
+  padding: 10px 26px;
+  cursor: pointer;
+  position: relative;
+  top: 0;
+  box-shadow: 0 5px 0 #7d4f55, 0 7px 10px var(--shadow);
+  transition: top .1s, box-shadow .1s;
+  user-select: none;
+  outline: none;
+}
+.cartoon-btn:hover:not(:disabled) {
+  top: -2px;
+  box-shadow: 0 7px 0 #7d4f55, 0 9px 14px var(--shadow);
+}
+.cartoon-btn:active:not(:disabled) {
+  top: 4px;
+  box-shadow: 0 1px 0 #7d4f55;
+}
+.cartoon-btn:disabled {
+  opacity: .45;
+  cursor: not-allowed;
 }
 
-button:hover {
-    background-color: #0056b3;
+.cartoon-btn.big {
+  font-size: 1.4rem;
+  padding: 14px 40px;
+}
+.cartoon-btn.secondary {
+  background: var(--muted);
+  box-shadow: 0 5px 0 #6d5e60, 0 7px 10px var(--shadow);
+}
+.cartoon-btn.secondary:hover:not(:disabled) {
+  box-shadow: 0 7px 0 #6d5e60, 0 9px 14px var(--shadow);
+}
+.cartoon-btn.accent {
+  background: var(--peach);
+  box-shadow: 0 5px 0 #c47e60, 0 7px 10px var(--shadow);
+}
+.cartoon-btn.accent:hover:not(:disabled) {
+  box-shadow: 0 7px 0 #c47e60, 0 9px 14px var(--shadow);
 }
 
-#resetBtn {
-    background-color: #6c757d;
+/* ── Game screen ───────────────────────────────────────── */
+
+.game-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 900px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
-#resetBtn:hover {
-    background-color: #5a6268;
+.header-home {
+  font-family: 'Patrick Hand', cursive;
+  font-size: 1.6rem;
+  background: none;
+  border: none;
+  color: var(--rose);
+  cursor: pointer;
+  text-shadow: 1px 1px 0 var(--dark);
+  transition: color .2s;
+}
+.header-home:hover { color: var(--dark); }
+
+.level-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 1.15rem;
+}
+.level-dots {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+.dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 2px solid var(--dark);
+  background: transparent;
+  transition: background .3s;
+}
+.dot.filled { background: var(--rose); }
+
+.score-badge {
+  font-size: 1.3rem;
+  background: var(--paper);
+  border: 2px solid var(--dark);
+  border-radius: 20px;
+  padding: 4px 18px;
+  box-shadow: 2px 2px 0 var(--dark);
 }
 
-#nextLevelBtn {
-    background-color: #28a745;
+/* Main area — relative so thumbnail can overlay */
+.game-main {
+  position: relative;
+  width: 100%;
+  max-width: 900px;
+  margin-bottom: 12px;
 }
 
-#nextLevelBtn:hover {
-    background-color: #218838;
+.player-canvas-wrap {
+  background: var(--paper);
+  border: 3px solid var(--dark);
+  border-radius: 14px;
+  box-shadow: 5px 5px 0 var(--dark);
+  overflow: hidden;
+}
+#playerCanvas {
+  display: block;
+  width: 100%;
+  height: 420px;
 }
 
-#feedback {
-    margin-bottom: 20px;
-    font-size: 1.2em;
-    color: #dc3545;
+/* Reference thumbnail */
+.ref-thumb {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 170px;
+  background: var(--paper);
+  border: 2px solid var(--dark);
+  border-radius: 12px;
+  padding: 6px 8px 8px;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 var(--dark);
+  transition: transform .2s;
+  z-index: 10;
+}
+.ref-thumb:hover { transform: scale(1.05); }
+.ref-label {
+  font-size: .9rem;
+  text-align: center;
+  margin-bottom: 4px;
+  color: var(--muted);
+}
+#refCanvasSmall {
+  display: block;
+  width: 100%;
+  height: 120px;
+  border-radius: 8px;
 }
 
-#score {
-    margin-bottom: 20px;
-    font-size: 1.2em;
-    color: #000;
+/* Controls */
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: 900px;
+  margin-bottom: 8px;
 }
 
-#treesContainer {
-    display: flex;
-    justify-content: center;
-    /* Center the trees horizontally */
-    gap: 40px;
-    /* Space between the trees */
-    flex-wrap: nowrap;
-    /* Prevent wrapping to maintain side-by-side layout */
-    width: 100%;
-    max-width: 1200px;
-    /* Limit the maximum width */
-    overflow: hidden;
-    /* Prevent overflow */
+.node-input {
+  -moz-appearance: textfield;
+  appearance: textfield;
+  background: var(--paper);
+  border: none;
+  border-bottom: 2px dashed var(--dark);
+  border-radius: 0;
+  font-family: 'Patrick Hand', cursive;
+  font-size: 1.3rem;
+  color: var(--dark);
+  padding: 6px 8px;
+  width: 90px;
+  text-align: center;
+  outline: none;
+  transition: border-color .2s;
+}
+.node-input::-webkit-outer-spin-button,
+.node-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.node-input:focus {
+  border-bottom-style: solid;
+  border-bottom-color: var(--rose);
 }
 
-.treeSection {
-    flex: 1 1 500px;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    max-width: 600px;
-    box-sizing: border-box;
+.btn-group {
+  display: flex;
+  gap: 8px;
 }
 
-.treeSection h2 {
-    margin-bottom: 10px;
+/* Feedback scribble */
+.scribble-feedback {
+  font-size: 1.25rem;
+  min-height: 1.8em;
+  text-align: center;
+  color: var(--rose);
+  transform: rotate(-1deg);
+  transition: all .3s;
+  margin-bottom: 4px;
+  max-width: 900px;
+}
+.scribble-feedback.success {
+  color: #6b9b5e;
+  transform: rotate(1deg) scale(1.08);
 }
 
-#cy,
-#referenceCy {
-    display: block;
-    position: relative;
-    width: 100%;
-    height: 500px;
-    border: 2px solid #dee2e6;
-    border-radius: 8px;
-    background-color: #ffffff;
-    overflow: hidden;
-    box-sizing: border-box;
-    text-align: left;
+/* ── Lightbox ──────────────────────────────────────────── */
+
+.lightbox {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+}
+.lightbox.active { display: flex; }
+
+.lightbox-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(102,84,94,.55);
+  backdrop-filter: blur(4px);
 }
 
-/* Highlight class for nodes */
-.highlight {
-    background-color: #FF5733 !important;
-    transition: background-color 0.5s;
+.lightbox-panel {
+  position: relative;
+  background: var(--paper);
+  border: 3px solid var(--dark);
+  border-radius: 16px;
+  padding: 20px;
+  max-width: 620px;
+  width: 92%;
+  box-shadow: 6px 6px 0 var(--dark);
+}
+.lightbox-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  font-size: 1.2rem;
+}
+.lightbox-x {
+  background: none;
+  border: none;
+  font-size: 1.6rem;
+  color: var(--dark);
+  cursor: pointer;
+  line-height: 1;
+}
+.lightbox-x:hover { color: var(--rose); }
+
+#refCanvasLarge {
+  display: block;
+  width: 100%;
+  height: 380px;
+  border-radius: 10px;
 }
 
-/* Leaderboard Section */
-#leaderboardSection {
-    margin-top: 40px;
-    width: 100%;
-    max-width: 800px;
+/* ── Win screen ────────────────────────────────────────── */
+
+.win-stars {
+  font-size: 2.4rem;
+  color: var(--peach);
+  margin-bottom: 8px;
+  letter-spacing: 12px;
+}
+.win-stars span { display: inline-block; animation: twinkle 1.6s ease infinite; }
+.win-stars span:nth-child(2) { animation-delay: .35s; }
+.win-stars span:nth-child(3) { animation-delay: .7s; }
+
+.win-title {
+  font-size: 3rem;
+  color: var(--rose);
+  text-shadow: 2px 2px 0 var(--dark);
+  margin-bottom: 12px;
+  animation: bounce 1.2s ease infinite;
 }
 
-#leaderboardSection h2 {
-    margin-bottom: 10px;
+.win-score {
+  font-size: 1.6rem;
+  margin-bottom: 28px;
+}
+.win-score span {
+  color: var(--rose);
+  font-size: 2rem;
 }
 
-#leaderboard {
-    width: 100%;
-    border-collapse: collapse;
+.win-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
-#leaderboard th,
-#leaderboard td {
-    border: 1px solid #dee2e6;
-    padding: 10px;
-    text-align: center;
+/* ── Leaderboard (shared with leaderboard.html) ────────── */
+
+.page-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  padding: 32px 16px;
 }
 
-#leaderboard th {
-    background-color: #343a40;
-    color: #fff;
+.page-title {
+  font-size: 2.4rem;
+  color: var(--rose);
+  text-shadow: 2px 2px 0 var(--dark);
+  margin-bottom: 20px;
 }
 
-#leaderboard tr:nth-child(even) {
-    background-color: #f2f2f2;
+.lb-card {
+  background: var(--paper);
+  background-image: repeating-linear-gradient(
+    transparent, transparent 27px, rgba(102,84,94,.08) 27px, rgba(102,84,94,.08) 28px
+  );
+  border: 3px solid var(--dark);
+  border-radius: 16px;
+  padding: 28px 24px;
+  box-shadow: 5px 5px 0 var(--dark);
+  max-width: 600px;
+  width: 100%;
 }
 
-#nav {
-    margin-top: 20px;
+.lb-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 6px;
+  font-size: 1.1rem;
+}
+.lb-table th {
+  background: var(--rose);
+  color: var(--white);
+  padding: 10px 14px;
+  font-weight: normal;
+  font-size: 1.1rem;
+}
+.lb-table th:first-child { border-radius: 8px 0 0 8px; }
+.lb-table th:last-child  { border-radius: 0 8px 8px 0; }
+
+.lb-table td {
+  background: rgba(246,224,181,.25);
+  padding: 8px 14px;
+  text-align: center;
+}
+.lb-table tbody tr:first-child td {
+  font-weight: bold;
+  background: rgba(238,169,144,.2);
+}
+.lb-table tbody tr:hover td {
+  background: rgba(170,111,115,.12);
 }
 
-#nav a {
-    margin: 0 10px;
-    text-decoration: none;
-    color: #007BFF;
-    font-weight: bold;
+.lb-empty {
+  text-align: center;
+  padding: 20px;
+  color: var(--muted);
+  font-size: 1.15rem;
 }
 
-#nav a:hover {
-    color: #0056b3;
+.back-link {
+  display: inline-block;
+  margin-top: 22px;
+  font-size: 1.1rem;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color .2s;
+}
+.back-link:hover { color: var(--rose); }
+
+/* ── Animations ────────────────────────────────────────── */
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%  { transform: translateX(-8px); }
+  40%  { transform: translateX(8px); }
+  60%  { transform: translateX(-5px); }
+  80%  { transform: translateX(5px); }
 }
 
-/* Responsive Design */
-@media (max-width: 1200px) {
-    #treesContainer {
-        flex-wrap: wrap;
-    }
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
 
-    .treeSection {
-        flex: 1 1 100%;
-        max-width: 100%;
-    }
+@keyframes twinkle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: .4; transform: scale(.75); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in { animation: fadeIn .4s ease both; }
+
+/* ── Responsive ────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .notebook-card { padding: 28px 20px; }
+  .start-title { font-size: 2.4rem; }
+  #playerCanvas { height: 320px; }
+  .ref-thumb { width: 130px; }
+  #refCanvasSmall { height: 90px; }
+  .game-header { font-size: .95rem; }
+  .cartoon-btn { font-size: 1rem; padding: 8px 18px; }
+  .cartoon-btn.big { font-size: 1.15rem; padding: 10px 30px; }
+  .lb-card { padding: 18px 14px; }
 }
